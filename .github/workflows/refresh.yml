@@ -16,10 +16,16 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - name: Pipeline ausführen (nur wenn eine Cloud-Datenbank hinterlegt ist)
+      - name: Pipeline ausführen
         run: |
           if [ -z "$DATABASE_URL" ]; then
-            echo "Kein Secret DATABASE_URL gesetzt, überspringe."
-            exit 0
+            echo "Kein Secret DATABASE_URL gesetzt, nutze lokale SQLite-Datei."
+            export DATABASE_URL="sqlite:///energie.db"
           fi
-          python -m pipeline.main --weeks 2
+          python -m pipeline.main --weeks 4 --export data
+      - name: CSV-Dateien bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: energiedaten-csv
+          path: data/
+          retention-days: 14
